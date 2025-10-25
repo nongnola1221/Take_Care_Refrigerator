@@ -19,9 +19,9 @@ const InventoryList = () => {
               className="flex justify-between items-center p-4 bg-white rounded-lg shadow"
             >
               <div>
-                <p className="font-semibold">{item.name}</p>
+                <p className="font-semibold">{item.Ingredient.name}</p>
                 <p className="text-sm text-gray-600">
-                  수량: {item.quantity} | 유통기한: {item.expiry_date}
+                  수량: {item.quantity} | 유통기한: {new Date(item.expiry_date).toLocaleDateString()}
                 </p>
               </div>
               <button

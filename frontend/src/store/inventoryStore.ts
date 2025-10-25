@@ -1,32 +1,55 @@
 import { create } from 'zustand';
+import axios from 'axios';
 
-interface Ingredient {
+const API_URL = 'http://localhost:3000/api'; // Assuming backend runs on port 3000
+
+// Interface matching the backend response
+interface InventoryItem {
   id: number;
-  name: string;
   quantity: string;
   expiry_date: string;
+  Ingredient: {
+    name: string;
+  };
 }
 
 interface InventoryState {
-  inventory: Ingredient[];
-  addIngredient: (ingredient: Omit<Ingredient, 'id'>) => void;
-  deleteIngredient: (id: number) => void;
+  inventory: InventoryItem[];
+  fetchInventory: () => Promise<void>;
+  addIngredient: (data: { ingredientName: string; quantity: string; expiry_date: string }) => Promise<void>;
+  deleteIngredient: (id: number) => Promise<void>;
 }
 
 const useInventoryStore = create<InventoryState>((set) => ({
-  inventory: [
-    { id: 1, name: '계란', quantity: '10개', expiry_date: '2025-11-10' },
-    { id: 2, name: '우유', quantity: '1개', expiry_date: '2025-11-05' },
-    { id: 3, name: '대파', quantity: '1단', expiry_date: '2025-11-08' },
-  ],
-  addIngredient: (ingredient) =>
-    set((state) => ({
-      inventory: [...state.inventory, { ...ingredient, id: Date.now() }],
-    })),
-  deleteIngredient: (id) =>
-    set((state) => ({
-      inventory: state.inventory.filter((item) => item.id !== id),
-    })),
+  inventory: [],
+  fetchInventory: async () => {
+    try {
+      const response = await axios.get(`${API_URL}/inventory`);
+      set({ inventory: response.data });
+    } catch (error) {
+      console.error("Error fetching inventory:", error);
+    }
+  },
+  addIngredient: async (data) => {
+    try {
+      const response = await axios.post(`${API_URL}/inventory`, data);
+      // After adding, fetch the whole list again to get the updated data with ingredient name
+      const updatedInventory = await axios.get(`${API_URL}/inventory`);
+      set({ inventory: updatedInventory.data });
+    } catch (error) {
+      console.error("Error adding ingredient:", error);
+    }
+  },
+  deleteIngredient: async (id) => {
+    try {
+      await axios.delete(`${API_URL}/inventory/${id}`);
+      set((state) => ({
+        inventory: state.inventory.filter((item) => item.id !== id),
+      }));
+    } catch (error) {
+      console.error("Error deleting ingredient:", error);
+    }
+  },
 }));
 
 export default useInventoryStore;

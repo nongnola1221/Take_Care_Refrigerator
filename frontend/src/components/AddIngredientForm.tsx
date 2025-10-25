@@ -3,15 +3,15 @@ import useInventoryStore from '../store/inventoryStore';
 
 const AddIngredientForm = () => {
   const addIngredient = useInventoryStore((state) => state.addIngredient);
-  const [name, setName] = useState('');
+  const [ingredientName, setIngredientName] = useState('');
   const [quantity, setQuantity] = useState('');
   const [expiry_date, setExpiryDate] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !quantity || !expiry_date) return;
-    addIngredient({ name, quantity, expiry_date });
-    setName('');
+    if (!ingredientName || !quantity || !expiry_date) return;
+    addIngredient({ ingredientName, quantity, expiry_date });
+    setIngredientName('');
     setQuantity('');
     setExpiryDate('');
   };
@@ -23,8 +23,8 @@ const AddIngredientForm = () => {
         <input
           type="text"
           placeholder="재료명 (예: 삼겹살)"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={ingredientName}
+          onChange={(e) => setIngredientName(e.target.value)}
           className="p-2 border rounded"
         />
         <input
