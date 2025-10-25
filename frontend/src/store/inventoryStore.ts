@@ -30,7 +30,7 @@ const useInventoryStore = create<InventoryState>((set) => ({
   },
   addIngredient: async (data) => {
     try {
-      const response = await apiClient.post('/inventory', data);
+      await apiClient.post('/inventory', data);
       // After adding, fetch the whole list again to get the updated data with ingredient name
       const updatedInventory = await apiClient.get('/inventory');
       set({ inventory: updatedInventory.data });

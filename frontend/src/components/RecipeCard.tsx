@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import apiClient from '../api/axios';
-import { Recipe } from '../store/recommendationStore'; // Assuming Recipe type is exported from store
+import type { Recipe } from '../store/recommendationStore';
 
 interface RecipeCardProps {
   recipe: Recipe;
