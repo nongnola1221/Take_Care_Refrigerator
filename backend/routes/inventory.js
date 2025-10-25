@@ -1,15 +1,17 @@
 const express = require('express');
+const authenticateToken = require('../middleware/auth');
 const { models } = require('../models');
 const { UserInventory, Ingredient } = models;
 
 const router = express.Router();
 
-// TODO: Add authentication middleware to get userId from token
+// Apply authentication middleware to all routes in this file
+router.use(authenticateToken);
 
 // Get all inventory items for a user
 router.get('/', async (req, res) => {
   try {
-    const userId = 1; // Hardcoded for now
+    const userId = req.user.id;
     const inventory = await UserInventory.findAll({
       where: { userId },
       include: [{ model: Ingredient, attributes: ['name'] }],
@@ -23,7 +25,7 @@ router.get('/', async (req, res) => {
 // Add a new item to inventory
 router.post('/', async (req, res) => {
   try {
-    const userId = 1; // Hardcoded for now
+    const userId = req.user.id;
     const { ingredientName, quantity, expiry_date } = req.body;
 
     // Find or create the ingredient
@@ -49,13 +51,11 @@ router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { quantity, expiry_date } = req.body;
-    const item = await UserInventory.findByPk(id);
+    const item = await UserInventory.findOne({ where: { id, userId: req.user.id } });
 
     if (!item) {
       return res.status(404).json({ error: 'Item not found' });
     }
-
-    // TODO: Check if the item belongs to the authenticated user
 
     item.quantity = quantity;
     item.expiry_date = expiry_date;
@@ -71,13 +71,11 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const item = await UserInventory.findByPk(id);
+    const item = await UserInventory.findOne({ where: { id, userId: req.user.id } });
 
     if (!item) {
       return res.status(404).json({ error: 'Item not found' });
     }
-
-    // TODO: Check if the item belongs to the authenticated user
 
     await item.destroy();
     res.status(204).send();

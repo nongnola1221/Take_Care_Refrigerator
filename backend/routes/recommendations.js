@@ -1,9 +1,12 @@
 const express = require('express');
+const authenticateToken = require('../middleware/auth');
 const { TfIdf } = require('natural');
 const { models } = require('../models');
 const { Recipe, Ingredient, UserInventory } = models;
 
 const router = express.Router();
+
+router.use(authenticateToken);
 
 // Cosine similarity function for sparse vectors (represented as objects)
 function cosineSimilarity(vecA, vecB) {
@@ -29,7 +32,7 @@ function cosineSimilarity(vecA, vecB) {
 
 router.post('/', async (req, res) => {
   try {
-    const userId = 1; // Hardcoded for now
+    const userId = req.user.id;
     const { cuisine_type, serving_size } = req.body;
 
     // 1. Fetch user's inventory and all recipes

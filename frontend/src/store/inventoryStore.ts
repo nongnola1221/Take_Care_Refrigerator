@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
-
-const API_URL = 'http://localhost:3000/api'; // Assuming backend runs on port 3000
+import apiClient from '../api/axios';
 
 // Interface matching the backend response
 interface InventoryItem {
@@ -24,7 +22,7 @@ const useInventoryStore = create<InventoryState>((set) => ({
   inventory: [],
   fetchInventory: async () => {
     try {
-      const response = await axios.get(`${API_URL}/inventory`);
+      const response = await apiClient.get('/inventory');
       set({ inventory: response.data });
     } catch (error) {
       console.error("Error fetching inventory:", error);
@@ -32,9 +30,9 @@ const useInventoryStore = create<InventoryState>((set) => ({
   },
   addIngredient: async (data) => {
     try {
-      const response = await axios.post(`${API_URL}/inventory`, data);
+      const response = await apiClient.post('/inventory', data);
       // After adding, fetch the whole list again to get the updated data with ingredient name
-      const updatedInventory = await axios.get(`${API_URL}/inventory`);
+      const updatedInventory = await apiClient.get('/inventory');
       set({ inventory: updatedInventory.data });
     } catch (error) {
       console.error("Error adding ingredient:", error);
@@ -42,7 +40,7 @@ const useInventoryStore = create<InventoryState>((set) => ({
   },
   deleteIngredient: async (id) => {
     try {
-      await axios.delete(`${API_URL}/inventory/${id}`);
+      await apiClient.delete(`/inventory/${id}`);
       set((state) => ({
         inventory: state.inventory.filter((item) => item.id !== id),
       }));

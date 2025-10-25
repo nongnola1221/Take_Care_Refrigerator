@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
-
-const API_URL = 'http://localhost:3000/api';
+import apiClient from '../api/axios';
 
 // We can reuse the Recipe type definition from RecipeCard, but it's better to have it here
 // to avoid circular dependencies if RecipeCard ever needs to use the store.
@@ -39,7 +37,7 @@ const useRecommendationStore = create<RecommendationState>((set) => ({
   fetchRecommendations: async (filters) => {
     set({ loading: true, error: null, message: null, recommendations: null });
     try {
-      const response = await axios.post(`${API_URL}/recommendations`, filters);
+      const response = await apiClient.post(`/recommendations`, filters);
       if (response.data.message) {
         set({ message: response.data.message, loading: false });
       } else {

@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
-
-const API_URL = 'http://localhost:3000/api/auth';
+import apiClient from '../api/axios';
 
 interface AuthState {
   token: string | null;
@@ -19,7 +17,7 @@ const useAuthStore = create<AuthState>((set) => ({
   login: async (data) => {
     set({ error: null });
     try {
-      const response = await axios.post(`${API_URL}/login`, data);
+      const response = await apiClient.post(`/auth/login`, data);
       const { token } = response.data;
       localStorage.setItem('token', token);
       set({ token, isAuthenticated: true });
@@ -33,7 +31,7 @@ const useAuthStore = create<AuthState>((set) => ({
   register: async (data) => {
     set({ error: null });
     try {
-      await axios.post(`${API_URL}/register`, data);
+      await apiClient.post(`/auth/register`, data);
       return true;
     } catch (error) {
       console.error("Registration failed:", error);
