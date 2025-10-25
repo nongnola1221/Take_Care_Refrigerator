@@ -19,6 +19,9 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  push_subscription: {
+    type: DataTypes.JSONB,
+  },
 });
 
 module.exports = User;
