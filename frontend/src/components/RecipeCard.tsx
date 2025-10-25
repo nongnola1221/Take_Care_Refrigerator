@@ -1,29 +1,50 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-
-// Define the types based on our backend models
-interface Ingredient {
-  id: number;
-  name: string;
-  storage_tip: string;
-  RecipeIngredient: {
-    quantity: string;
-  };
-}
-
-interface Recipe {
-  id: number;
-  name: string;
-  instructions: string;
-  cuisine_type: string;
-  serving_size: number;
-  Ingredients: Ingredient[];
-}
+import apiClient from '../api/axios';
+import { Recipe } from '../store/recommendationStore'; // Assuming Recipe type is exported from store
 
 interface RecipeCardProps {
   recipe: Recipe;
 }
 
+interface StorageTip {
+  name: string;
+  storage_tip: string;
+}
+
 const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
+  const [showTips, setShowTips] = useState(false);
+  const [tips, setTips] = useState<StorageTip[]>([]);
+  const [tipsLoading, setTipsLoading] = useState(false);
+
+  const handleShowTips = async () => {
+    if (showTips) {
+      setShowTips(false);
+      return;
+    }
+
+    setTipsLoading(true);
+    try {
+      const response = await apiClient.get(`/recipes/${recipe.id}/storage_tip`);
+      setTips(response.data);
+      setShowTips(true);
+    } catch (error) {
+      console.error("Error fetching storage tips:", error);
+      alert('보관법을 가져오는 데 실패했습니다.');
+    }
+    setTipsLoading(false);
+  };
+
+  const handleCooked = async () => {
+    try {
+      await apiClient.post('/actions/log', { recipeId: recipe.id, action: 'cooked' });
+      alert(`'${recipe.name}' 요리 완료! 맛있게 드세요!`);
+    } catch (error) {
+      console.error("Error logging action:", error);
+      alert('요리 완료를 기록하는 데 실패했습니다.');
+    }
+  };
+
   return (
     <motion.div
       layout
@@ -53,9 +74,29 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
             ))}
           </ul>
         </div>
-        <div>
+        <div className="mb-4">
           <h4 className="font-semibold text-lg mb-2">조리법:</h4>
           <p className="text-gray-700 whitespace-pre-line">{recipe.instructions}</p>
+        </div>
+
+        {showTips && (
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+            <h5 className="font-semibold text-md mb-2">주재료 보관법 팁 🍯</h5>
+            <ul className="list-disc list-inside text-gray-600">
+              {tips.map(tip => (
+                <li key={tip.name}><strong>{tip.name}:</strong> {tip.storage_tip}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="mt-6 flex justify-between gap-2">
+          <button onClick={handleShowTips} disabled={tipsLoading} className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600 transition-colors disabled:bg-gray-400">
+            {tipsLoading ? '로딩중...' : (showTips ? '팁 숨기기' : '보관법 보기')}
+          </button>
+          <button onClick={handleCooked} className="w-full px-4 py-2 text-sm font-medium text-white bg-teal-500 rounded hover:bg-teal-600 transition-colors">
+            요리 완료!
+          </button>
         </div>
       </div>
     </motion.div>

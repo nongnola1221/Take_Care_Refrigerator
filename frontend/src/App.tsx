@@ -4,6 +4,7 @@ import InventoryPage from './pages/InventoryPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import useAuthStore from './store/authStore';
+import { subscribeToPush } from './utils/push';
 
 function App() {
   const { isAuthenticated, logout } = useAuthStore();
@@ -16,7 +17,10 @@ function App() {
           <div>
             <Link to="/inventory" className="mr-4 hover:text-gray-300">재고 관리</Link>
             {isAuthenticated ? (
-              <button onClick={logout} className="hover:text-gray-300">로그아웃</button>
+              <>
+                <button onClick={subscribeToPush} className="mr-4 hover:text-gray-300">알림 구독</button>
+                <button onClick={logout} className="hover:text-gray-300">로그아웃</button>
+              </>
             ) : (
               <>
                 <Link to="/login" className="mr-4 hover:text-gray-300">로그인</Link>
