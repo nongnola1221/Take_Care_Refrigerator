@@ -1,11 +1,11 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { HashRouter, Routes, Route, Link } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import InventoryPage from './pages/InventoryPage';
 import LoginPage from './pages/LoginPage';
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <header className="bg-gray-800 text-white p-4">
         <nav className="container mx-auto flex justify-between">
           <Link to="/" className="hover:text-gray-300">냉장고 요리사</Link>
@@ -22,7 +22,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
         </Routes>
       </main>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
