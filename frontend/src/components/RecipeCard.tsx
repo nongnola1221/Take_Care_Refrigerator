@@ -3,6 +3,7 @@ import { Card, Button, Tag, Collapse, Typography, notification } from 'antd';
 import apiClient from '../api/axios';
 import type { Recipe } from '../store/recommendationStore';
 import { FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { ClockCircleOutlined, StarFilled } from '@ant-design/icons';
 
 const { Panel } = Collapse;
 const { Text, Title } = Typography;
@@ -15,6 +16,15 @@ interface StorageTip {
   name: string;
   storage_tip: string;
 }
+
+// Helper to render difficulty stars
+const renderDifficulty = (level: number) => {
+  const stars = [];
+  for (let i = 0; i < 3; i++) {
+    stars.push(<StarFilled key={i} style={{ color: i < level ? '#fadb14' : '#d9d9d9' }} />);
+  }
+  return <span>{stars}</span>;
+};
 
 const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
   const [tips, setTips] = useState<StorageTip[]>([]);
@@ -56,9 +66,15 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
         <Button onClick={handleCooked} type="primary" className="btn-grad rounded-full mx-4">요리 완료!</Button>,
       ]}
     >
-      <div className="flex items-center mb-4">
-        <Tag color="blue">{recipe.cuisine_type}</Tag>
-        <Tag color="green">{recipe.serving_size}인분</Tag>
+      <div className="flex justify-between items-center mb-4 text-xs text-gray-500">
+        <div className="flex items-center gap-2">
+            <Tag color="blue">{recipe.cuisine_type}</Tag>
+            <Tag color="green">{recipe.serving_size}인분</Tag>
+        </div>
+        <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1"><ClockCircleOutlined /> {recipe.cooking_time}</span>
+            <span className="flex items-center gap-1">{renderDifficulty(recipe.difficulty)}</span>
+        </div>
       </div>
       <div className="mb-4">
         <Title level={5}>필요한 재료:</Title>

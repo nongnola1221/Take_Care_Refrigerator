@@ -18,7 +18,9 @@ export interface Recipe {
   instructions: string;
   cuisine_type: string;
   serving_size: number;
-  Ingredients: Ingredient[];
+  cooking_time: string;
+  difficulty: number;
+  Ingredients: { name: string }[];
 }
 
 interface RecommendationState {

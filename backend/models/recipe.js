@@ -21,6 +21,12 @@ const Recipe = sequelize.define('Recipe', {
   serving_size: {
     type: DataTypes.INTEGER,
   },
+  cooking_time: {
+    type: DataTypes.STRING,
+  },
+  difficulty: {
+    type: DataTypes.INTEGER,
+  },
 });
 
 module.exports = Recipe;

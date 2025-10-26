@@ -8,13 +8,26 @@ const bcrypt = require('bcrypt');
 // Helper function to parse the string representation of a list
 const parseIngredientList = (str) => {
   try {
-    // Replace single quotes with double quotes for valid JSON
     const jsonString = str.replace(/'/g, '"');
-    const arr = JSON.parse(jsonString);
-    return arr;
+    return JSON.parse(jsonString);
   } catch (e) {
     console.error('Failed to parse ingredient string:', str);
     return [];
+  }
+};
+
+// Helper function to map difficulty string to integer
+const mapDifficulty = (difficultyStr) => {
+  switch (difficultyStr) {
+    case '초급':
+    case '아무나':
+      return 1;
+    case '중급':
+      return 2;
+    case '고급':
+      return 3;
+    default:
+      return null;
   }
 };
 
@@ -23,24 +36,22 @@ const seedDatabase = async () => {
     await sequelize.sync({ force: true });
     console.log('Database synced!');
 
-    // 1. Read and parse the CSV file
     const csvFilePath = '/Users/nongnola/Documents/프로젝트/Take_Care_Refrigerator/frontend/src/assets/recipe_main_preprocessing_example.csv';
     const fileContent = fs.readFileSync(csvFilePath);
     const records = parse(fileContent, { columns: true, skip_empty_lines: true });
 
     console.log(`Found ${records.length} recipes in CSV. Seeding...`);
 
-    // 2. Iterate over records and populate database
     for (const record of records) {
-      // Create Recipe
       const newRecipe = await Recipe.create({
         name: record.제목,
-        instructions: record.조리순서, // Assuming this is a text field
+        instructions: record.조리순서,
         cuisine_type: record.종류별,
         serving_size: parseInt(record.인분, 10) || null,
+        cooking_time: record.조리시간,
+        difficulty: mapDifficulty(record.난이도),
       });
 
-      // Find or Create Ingredients and link them
       const ingredients = parseIngredientList(record.재료);
       for (const ingredientName of ingredients) {
         if (ingredientName) {
@@ -54,12 +65,10 @@ const seedDatabase = async () => {
 
     console.log('Finished seeding recipes and ingredients.');
 
-    // 3. Create Admin User
     console.log('Creating admin user...');
     const adminPasswordHash = await bcrypt.hash('admin', 10);
     const adminUser = await User.create({ email: 'admin@admin', password_hash: adminPasswordHash });
 
-    // 4. Populate Admin Inventory with ingredients from the CSV
     console.log('Populating admin inventory...');
     const tofu = await Ingredient.findOne({ where: { name: '두부' } });
     const mincedBeef = await Ingredient.findOne({ where: { name: '다진소고기' } });
@@ -67,7 +76,6 @@ const seedDatabase = async () => {
     if (adminUser && tofu && mincedBeef) {
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() + 7);
-
       await UserInventory.create({ userId: adminUser.id, ingredientId: tofu.id, quantity: '1모', expiry_date: expiryDate });
       await UserInventory.create({ userId: adminUser.id, ingredientId: mincedBeef.id, quantity: '200g', expiry_date: expiryDate });
     }
