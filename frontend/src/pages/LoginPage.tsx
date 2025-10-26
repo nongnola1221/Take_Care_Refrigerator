@@ -61,8 +61,8 @@ const LoginPage = () => {
             <motion.button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-primary hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-primary/50 transition-all duration-300"
-              whileHover={{ scale: 1.02 }}
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-primary/50"
+              whileHover={{ backgroundColor: "#1a9999", y: -2 }}
               whileTap={{ scale: 0.98 }}
             >
               {loading ? '로그인 중...' : '로그인'}

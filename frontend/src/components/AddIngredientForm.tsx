@@ -50,8 +50,8 @@ const AddIngredientForm = () => {
       </div>
       <motion.button
         type="submit"
-        className="w-full px-4 py-3 bg-primary text-white rounded-lg hover:bg-opacity-80 transition-all duration-300"
-        whileHover={{ scale: 1.02 }}
+        className="w-full px-4 py-3 bg-primary text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+        whileHover={{ backgroundColor: "#1a9999", y: -2 }}
         whileTap={{ scale: 0.98 }}
       >
         추가하기

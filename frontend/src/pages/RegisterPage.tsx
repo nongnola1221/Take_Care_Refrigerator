@@ -62,8 +62,8 @@ const RegisterPage = () => {
             <motion.button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-secondary hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary disabled:bg-secondary/50 transition-all duration-300"
-              whileHover={{ scale: 1.02 }}
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary disabled:bg-secondary/50"
+              whileHover={{ backgroundColor: "#3a5bbd", y: -2 }}
               whileTap={{ scale: 0.98 }}
             >
               {loading ? '가입 중...' : '회원가입'}

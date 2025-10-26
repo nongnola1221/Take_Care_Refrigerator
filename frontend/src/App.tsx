@@ -16,17 +16,13 @@ function App() {
         <div className="relative min-h-screen w-full bg-background/80 backdrop-blur-xl">
           <header className="p-4 text-white sticky top-0 z-10 bg-glass shadow-lg">
             <nav className="container mx-auto flex justify-between items-center">
-              <Link to="/" className="text-2xl font-bold tracking-wider">냉장고를 부탁해</Link>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link to="/" className="text-2xl font-bold tracking-wider">냉장고를 부탁해</Link>
+              </motion.div>
               <div className="flex items-center gap-4">
-                <motion.custom
-                  as={Link}
-                  to="/inventory"
-                  className="hover:text-gray-200 transition-colors"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  재고 관리
-                </motion.custom>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Link to="/inventory" className="hover:text-gray-200 transition-colors">재고 관리</Link>
+                </motion.div>
                 {isAuthenticated ? (
                   <>
                     <motion.button
@@ -48,24 +44,22 @@ function App() {
                   </>
                 ) : (
                   <>
-                    <motion.custom
-                      as={Link}
-                      to="/login"
-                      className="hover:text-gray-200 transition-colors"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      로그인
-                    </motion.custom>
-                    <motion.custom
-                      as={Link}
-                      to="/register"
-                      className="px-4 py-2 bg-white/20 rounded-md hover:bg-white/30 transition-colors"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      회원가입
-                    </motion.custom>
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Link
+                        to="/login"
+                        className="hover:text-gray-200 transition-colors"
+                      >
+                        로그인
+                      </Link>
+                    </motion.div>
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Link
+                        to="/register"
+                        className="px-4 py-2 bg-white/20 rounded-md hover:bg-white/30 transition-colors"
+                      >
+                        회원가입
+                      </Link>
+                    </motion.div>
                   </>
                 )}
               </div>

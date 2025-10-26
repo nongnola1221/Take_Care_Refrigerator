@@ -52,8 +52,8 @@ const HomePage = () => {
           <motion.button
             onClick={handleRecommendClick}
             disabled={loading}
-            className="w-full px-4 py-3 bg-primary text-white rounded-lg hover:bg-opacity-80 transition-all duration-300 disabled:bg-primary/50"
-            whileHover={{ scale: 1.02 }}
+            className="w-full px-4 py-3 bg-primary text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-primary/50"
+            whileHover={{ backgroundColor: "#1a9999", y: -2 }}
             whileTap={{ scale: 0.98 }}
           >
             {loading ? '찾는 중...' : '추천받기'}

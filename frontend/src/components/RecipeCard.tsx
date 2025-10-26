@@ -107,12 +107,18 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
       </div>
 
       <div className="mt-6 flex flex-col sm:flex-row justify-between gap-2">
-        <button onClick={handleShowTips} disabled={tipsLoading} className="w-full px-4 py-3 text-base font-medium text-white bg-primary rounded-lg hover:bg-opacity-80 transition-all duration-300 disabled:bg-primary/50">
+        <motion.button onClick={handleShowTips} disabled={tipsLoading} className="w-full px-4 py-3 text-base font-medium text-white bg-primary rounded-lg disabled:bg-primary/50"
+          whileHover={{ backgroundColor: "#1a9999", y: -2 }}
+          whileTap={{ scale: 0.98 }}
+        >
           {tipsLoading ? '로딩중...' : (showTips ? '팁 숨기기' : '보관법 보기')}
-        </button>
-        <button onClick={handleCooked} className="w-full px-4 py-3 text-base font-medium text-white bg-secondary rounded-lg hover:bg-opacity-80 transition-all duration-300">
+        </motion.button>
+        <motion.button onClick={handleCooked} className="w-full px-4 py-3 text-base font-medium text-white bg-secondary rounded-lg"
+          whileHover={{ backgroundColor: "#3a5bbd", y: -2 }}
+          whileTap={{ scale: 0.98 }}
+        >
           요리 완료!
-        </button>
+        </motion.button>
       </div>
     </motion.div>
   );
