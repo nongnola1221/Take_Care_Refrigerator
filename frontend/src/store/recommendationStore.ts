@@ -1,17 +1,6 @@
 import { create } from 'zustand';
 import apiClient from '../api/axios';
 
-// We can reuse the Recipe type definition from RecipeCard, but it's better to have it here
-// to avoid circular dependencies if RecipeCard ever needs to use the store.
-interface Ingredient {
-  id: number;
-  name: string;
-  storage_tip: string;
-  RecipeIngredient: {
-    quantity: string;
-  };
-}
-
 export interface Recipe {
   id: number;
   name: string;
