@@ -1,4 +1,5 @@
 import { HashRouter, Routes, Route, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import HomePage from './pages/HomePage';
 import InventoryPage from './pages/InventoryPage';
 import LoginPage from './pages/LoginPage';
@@ -17,16 +18,54 @@ function App() {
             <nav className="container mx-auto flex justify-between items-center">
               <Link to="/" className="text-2xl font-bold tracking-wider">냉장고를 부탁해</Link>
               <div className="flex items-center gap-4">
-                <Link to="/inventory" className="hover:text-gray-200 transition-colors">재고 관리</Link>
+                <motion.custom
+                  as={Link}
+                  to="/inventory"
+                  className="hover:text-gray-200 transition-colors"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  재고 관리
+                </motion.custom>
                 {isAuthenticated ? (
                   <>
-                    <button onClick={subscribeToPush} className="hover:text-gray-200 transition-colors">알림 구독</button>
-                    <button onClick={logout} className="hover:text-gray-200 transition-colors">로그아웃</button>
+                    <motion.button
+                      onClick={subscribeToPush}
+                      className="hover:text-gray-200 transition-colors"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      알림 구독
+                    </motion.button>
+                    <motion.button
+                      onClick={logout}
+                      className="hover:text-gray-200 transition-colors"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      로그아웃
+                    </motion.button>
                   </>
                 ) : (
                   <>
-                    <Link to="/login" className="hover:text-gray-200 transition-colors">로그인</Link>
-                    <Link to="/register" className="px-4 py-2 bg-white/20 rounded-md hover:bg-white/30 transition-colors">회원가입</Link>
+                    <motion.custom
+                      as={Link}
+                      to="/login"
+                      className="hover:text-gray-200 transition-colors"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      로그인
+                    </motion.custom>
+                    <motion.custom
+                      as={Link}
+                      to="/register"
+                      className="px-4 py-2 bg-white/20 rounded-md hover:bg-white/30 transition-colors"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      회원가입
+                    </motion.custom>
                   </>
                 )}
               </div>

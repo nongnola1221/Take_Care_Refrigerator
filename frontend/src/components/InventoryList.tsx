@@ -5,7 +5,12 @@ const InventoryList = () => {
   const { inventory, deleteIngredient } = useInventoryStore();
 
   return (
-    <div className="space-y-4">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
+      className="space-y-4"
+    >
       <h2 className="text-2xl font-bold text-white mb-4">나의 재고 목록</h2>
       <ul className="space-y-3">
         <AnimatePresence>
@@ -24,17 +29,19 @@ const InventoryList = () => {
                   수량: {item.quantity} | 유통기한: {new Date(item.expiry_date).toLocaleDateString()}
                 </p>
               </div>
-              <button
+              <motion.button
                 onClick={() => deleteIngredient(item.id)}
                 className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 삭제
-              </button>
+              </motion.button>
             </motion.li>
           ))}
         </AnimatePresence>
       </ul>
-    </div>
+    </motion.div>
   );
 };
 

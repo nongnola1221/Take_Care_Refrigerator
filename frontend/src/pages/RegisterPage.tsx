@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import useAuthStore from '../store/authStore';
 
 const RegisterPage = () => {
@@ -22,7 +23,12 @@ const RegisterPage = () => {
 
   return (
     <div className="flex justify-center items-center py-12">
-      <div className="w-full max-w-md p-8 space-y-6 bg-glass rounded-2xl shadow-2xl backdrop-blur-lg">
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 100, damping: 10 }}
+        className="w-full max-w-md p-8 space-y-6 bg-glass rounded-2xl shadow-2xl backdrop-blur-lg"
+      >
         <h2 className="text-3xl font-bold text-center text-white">회원가입</h2>
         {error && <p className='text-center text-red-200 bg-red-500/30 p-3 rounded-lg'>{error}</p>}
         <form className="space-y-6" onSubmit={handleRegister}>
@@ -53,16 +59,18 @@ const RegisterPage = () => {
             />
           </div>
           <div>
-            <button
+            <motion.button
               type="submit"
               disabled={loading}
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-secondary hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary disabled:bg-secondary/50 transition-all duration-300"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               {loading ? '가입 중...' : '회원가입'}
-            </button>
+            </motion.button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };
