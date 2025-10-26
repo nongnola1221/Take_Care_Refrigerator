@@ -1,4 +1,4 @@
-# 냉장고 요리사 (Refrigerator Chef)
+# 냉장고를 부탁해 (Refrigerator Chef)
 
 ## 1. 프로젝트 개요
 
