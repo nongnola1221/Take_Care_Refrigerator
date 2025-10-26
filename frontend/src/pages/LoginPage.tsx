@@ -20,13 +20,13 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex justify-center items-center" style={{ height: 'calc(100vh - 200px)' }}>
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-3xl font-bold text-center text-gray-900">로그인</h2>
-        {error && <p className="text-center text-red-500 bg-red-100 p-3 rounded">{error}</p>}
+    <div className="flex justify-center items-center py-12">
+      <div className="w-full max-w-md p-8 space-y-6 bg-glass rounded-2xl shadow-2xl backdrop-blur-lg">
+        <h2 className="text-3xl font-bold text-center text-white">로그인</h2>
+        {error && <p className="text-center text-red-200 bg-red-500/30 p-3 rounded-lg">{error}</p>}
         <form className="space-y-6" onSubmit={handleLogin}>
           <div>
-            <label htmlFor="email" className="text-sm font-medium text-gray-700">이메일 주소</label>
+            <label htmlFor="email" className="text-sm font-medium text-white/80">이메일 주소</label>
             <input
               id="email"
               name="email"
@@ -35,12 +35,12 @@ const LoginPage = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 mt-1 bg-white/10 border border-white/20 text-white rounded-md shadow-sm placeholder-white/50 focus:outline-none focus:ring-primary focus:border-primary"
               placeholder="you@example.com"
             />
           </div>
           <div>
-            <label htmlFor="password" className="text-sm font-medium text-gray-700">비밀번호</label>
+            <label htmlFor="password" className="text-sm font-medium text-white/80">비밀번호</label>
             <input
               id="password"
               name="password"
@@ -49,7 +49,7 @@ const LoginPage = () => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 mt-1 bg-white/10 border border-white/20 text-white rounded-md shadow-sm placeholder-white/50 focus:outline-none focus:ring-primary focus:border-primary"
               placeholder="••••••••"
             />
           </div>
@@ -57,7 +57,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-primary hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-primary/50 transition-all duration-300"
             >
               {loading ? '로그인 중...' : '로그인'}
             </button>

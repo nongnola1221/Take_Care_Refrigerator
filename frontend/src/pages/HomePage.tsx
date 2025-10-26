@@ -24,13 +24,13 @@ const HomePage = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="bg-gray-100 p-6 rounded-lg shadow-md mb-8">
-        <h2 className="text-2xl font-bold mb-4">레시피 추천받기</h2>
+      <div className="bg-glass p-6 rounded-2xl shadow-2xl backdrop-blur-lg mb-8">
+        <h2 className="text-2xl font-bold text-white mb-4">레시피 추천받기</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <select
             value={cuisine}
             onChange={(e) => setCuisine(e.target.value)}
-            className="p-2 border rounded"
+            className="p-3 bg-white/10 border border-white/20 text-white rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
           >
             <option value="">요리 종류 (전체)</option>
             <option value="한식">한식</option>
@@ -41,13 +41,13 @@ const HomePage = () => {
             type="number"
             placeholder="최대 인분 (예: 2)"
             onChange={(e) => setServings(e.target.value ? parseInt(e.target.value) : undefined)}
-            className="p-2 border rounded"
+            className="p-3 bg-white/10 border border-white/20 text-white rounded-md shadow-sm placeholder-white/50 focus:outline-none focus:ring-primary focus:border-primary"
             min="1"
           />
           <button
             onClick={handleRecommendClick}
             disabled={loading}
-            className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors disabled:bg-gray-400"
+            className="w-full px-4 py-3 bg-primary text-white rounded-md hover:bg-opacity-80 transition-all duration-300 disabled:bg-primary/50"
           >
             {loading ? '찾는 중...' : '추천받기'}
           </button>
@@ -55,8 +55,8 @@ const HomePage = () => {
       </div>
 
       <div>
-        {error && <p className="text-center text-red-500">{error}</p>}
-        {message && <p className="text-center text-xl text-gray-600">{message}</p>}
+        {error && <p className="text-center text-red-200 bg-red-500/30 p-3 rounded-lg">{error}</p>}
+        {message && <p className="text-center text-xl text-white/80">{message}</p>}
         <AnimatePresence>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {recommendations?.map((recipe) => (

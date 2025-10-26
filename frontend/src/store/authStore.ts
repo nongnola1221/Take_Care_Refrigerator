@@ -31,10 +31,12 @@ const useAuthStore = create<AuthState>((set) => ({
   register: async (data) => {
     set({ error: null });
     try {
-      await apiClient.post(`/auth/register`, data);
+      console.log('Frontend: Registering with', data);
+      const response = await apiClient.post(`/auth/register`, data);
+      console.log('Frontend: Registration successful', response.data);
       return true;
     } catch (error) {
-      console.error("Registration failed:", error);
+      console.error("Frontend: Registration failed:", error.response?.data || error.message);
       set({ error: '회원가입에 실패했습니다. 이미 사용중인 이메일일 수 있습니다.' });
       return false;
     }

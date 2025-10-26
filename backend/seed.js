@@ -1,5 +1,6 @@
 const { sequelize, models } = require('./models');
-const { Recipe, Ingredient, RecipeIngredient } = models;
+const { Recipe, Ingredient, RecipeIngredient, User } = models;
+const bcrypt = require('bcrypt');
 
 const ingredientsData = [
   { name: '김치', storage_tip: '냉장 보관하세요.' },
@@ -56,6 +57,10 @@ const seedDatabase = async () => {
 
     console.log('Seeding ingredients...');
     const ingredients = await Ingredient.bulkCreate(ingredientsData, { returning: true });
+
+    console.log('Creating admin user...');
+    const adminPasswordHash = await bcrypt.hash('admin', 10);
+    await User.create({ email: 'admin@admin.com', password_hash: adminPasswordHash });
 
     console.log('Seeding recipes...');
     for (const recipeData of recipesData) {

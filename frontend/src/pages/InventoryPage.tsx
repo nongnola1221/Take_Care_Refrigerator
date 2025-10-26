@@ -1,17 +1,10 @@
-import { useEffect } from 'react';
 import AddIngredientForm from '../components/AddIngredientForm';
 import InventoryList from '../components/InventoryList';
-import useInventoryStore from '../store/inventoryStore';
 
 const InventoryPage = () => {
-  const fetchInventory = useInventoryStore((state) => state.fetchInventory);
-
-  useEffect(() => {
-    fetchInventory();
-  }, [fetchInventory]);
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-6 bg-glass rounded-2xl shadow-2xl backdrop-blur-lg">
+      <h2 className="text-3xl font-bold text-white text-center mb-6">나의 냉장고 재고</h2>
       <AddIngredientForm />
       <InventoryList />
     </div>
