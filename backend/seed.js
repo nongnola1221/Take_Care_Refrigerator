@@ -1,114 +1,79 @@
+const fs = require('fs');
+const path = require('path');
+const { parse } = require('csv-parse/sync');
 const { sequelize, models } = require('./models');
 const { Recipe, Ingredient, RecipeIngredient, User, UserInventory } = models;
 const bcrypt = require('bcrypt');
 
-const ingredientsData = [
-  { name: '김치', storage_tip: '냉장 보관하세요.' },
-  { name: '돼지고기', storage_tip: '냉동 또는 냉장 보관하세요.' },
-  { name: '두부', storage_tip: '물에 담가 냉장 보관하세요.' },
-  { name: '양파', storage_tip: '서늘하고 건조한 곳에 보관하세요.' },
-  { name: '계란', storage_tip: '냉장 보관하세요.' },
-  { name: '밥', storage_tip: '남은 밥은 냉동 보관하는 것이 좋습니다.' },
-  { name: '스팸', storage_tip: '개봉 후에는 냉장 보관하세요.' },
-  { name: '대파', storage_tip: '뿌리 부분을 물에 적신 키친타올로 감싸 냉장 보관하세요.' },
-];
-
-const recipesData = [
-  {
-    name: '김치찌개',
-    instructions: '1. 돼지고기를 볶는다. 2. 김치를 넣고 더 볶는다. 3. 물을 붓고 끓인다. 4. 두부와 대파를 넣고 마무리한다.',
-    cuisine_type: '한식',
-    serving_size: 2,
-    ingredients: [
-      { name: '김치', quantity: '1/4포기' },
-      { name: '돼지고기', quantity: '200g' },
-      { name: '두부', quantity: '1/2모' },
-      { name: '대파', quantity: '1/2대' },
-    ],
-  },
-  {
-    name: '계란볶음밥',
-    instructions: '1. 파기름을 낸다. 2. 계란을 스크램블한다. 3. 밥을 넣고 볶는다. 4. 간장으로 간을 맞춘다.',
-    cuisine_type: '한식',
-    serving_size: 1,
-    ingredients: [
-      { name: '밥', quantity: '1공기' },
-      { name: '계란', quantity: '2개' },
-      { name: '대파', quantity: '1/4대' },
-    ],
-  },
-  {
-    name: '스팸김치볶음밥',
-    instructions: '1. 스팸과 김치를 볶는다. 2. 밥을 넣고 함께 볶는다. 3. 계란 후라이를 올려 마무리한다.',
-    cuisine_type: '한식',
-    serving_size: 1,
-    ingredients: [
-      { name: '스팸', quantity: '1/2캔' },
-      { name: '김치', quantity: '1종이컵' },
-      { name: '밥', quantity: '1공기' },
-      { name: '계란', quantity: '1개' },
-    ],
-  },
-];
+// Helper function to parse the string representation of a list
+const parseIngredientList = (str) => {
+  try {
+    // Replace single quotes with double quotes for valid JSON
+    const jsonString = str.replace(/'/g, '"');
+    const arr = JSON.parse(jsonString);
+    return arr;
+  } catch (e) {
+    console.error('Failed to parse ingredient string:', str);
+    return [];
+  }
+};
 
 const seedDatabase = async () => {
   try {
-    await sequelize.sync({ force: true }); // This will drop tables and re-create them
+    await sequelize.sync({ force: true });
+    console.log('Database synced!');
 
-    console.log('Seeding ingredients...');
-    const ingredients = await Ingredient.bulkCreate(ingredientsData, { returning: true });
+    // 1. Read and parse the CSV file
+    const csvFilePath = '/Users/nongnola/Documents/프로젝트/Take_Care_Refrigerator/frontend/src/assets/recipe_main_preprocessing_example.csv';
+    const fileContent = fs.readFileSync(csvFilePath);
+    const records = parse(fileContent, { columns: true, skip_empty_lines: true });
 
-    console.log('Creating admin user...');
-    const adminPasswordHash = await bcrypt.hash('admin', 10);
-    const adminUser = await User.create({ email: 'admin@admin', password_hash: adminPasswordHash });
+    console.log(`Found ${records.length} recipes in CSV. Seeding...`);
 
-    console.log('Populating admin inventory...');
-    const kimchi = ingredients.find(i => i.name === '김치');
-    const pork = ingredients.find(i => i.name === '돼지고기');
-    const onion = ingredients.find(i => i.name === '양파');
-
-    if (adminUser && kimchi && pork && onion) {
-      const today = new Date();
-      const expiryDate = new Date(new Date().setDate(today.getDate() + 7)); // 7 days from now
-
-      await UserInventory.create({
-        userId: adminUser.id,
-        ingredientId: kimchi.id,
-        quantity: '500g',
-        expiry_date: expiryDate,
-      });
-      await UserInventory.create({
-        userId: adminUser.id,
-        ingredientId: pork.id,
-        quantity: '300g',
-        expiry_date: expiryDate,
-      });
-      await UserInventory.create({
-        userId: adminUser.id,
-        ingredientId: onion.id,
-        quantity: '2개',
-        expiry_date: expiryDate,
-      });
-    }
-
-    console.log('Seeding recipes...');
-    for (const recipeData of recipesData) {
-      const recipe = await Recipe.create({
-        name: recipeData.name,
-        instructions: recipeData.instructions,
-        cuisine_type: recipeData.cuisine_type,
-        serving_size: recipeData.serving_size,
+    // 2. Iterate over records and populate database
+    for (const record of records) {
+      // Create Recipe
+      const newRecipe = await Recipe.create({
+        name: record.제목,
+        instructions: record.조리순서, // Assuming this is a text field
+        cuisine_type: record.종류별,
+        serving_size: parseInt(record.인분, 10) || null,
       });
 
-      for (const recipeIngredientData of recipeData.ingredients) {
-        const ingredient = ingredients.find(i => i.name === recipeIngredientData.name);
-        if (ingredient) {
-          await recipe.addIngredient(ingredient, { through: { quantity: recipeIngredientData.quantity } });
+      // Find or Create Ingredients and link them
+      const ingredients = parseIngredientList(record.재료);
+      for (const ingredientName of ingredients) {
+        if (ingredientName) {
+          const [ingredient] = await Ingredient.findOrCreate({
+            where: { name: ingredientName.trim() },
+          });
+          await newRecipe.addIngredient(ingredient, { through: { quantity: '' } });
         }
       }
     }
 
+    console.log('Finished seeding recipes and ingredients.');
+
+    // 3. Create Admin User
+    console.log('Creating admin user...');
+    const adminPasswordHash = await bcrypt.hash('admin', 10);
+    const adminUser = await User.create({ email: 'admin@admin', password_hash: adminPasswordHash });
+
+    // 4. Populate Admin Inventory with ingredients from the CSV
+    console.log('Populating admin inventory...');
+    const tofu = await Ingredient.findOne({ where: { name: '두부' } });
+    const mincedBeef = await Ingredient.findOne({ where: { name: '다진소고기' } });
+
+    if (adminUser && tofu && mincedBeef) {
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 7);
+
+      await UserInventory.create({ userId: adminUser.id, ingredientId: tofu.id, quantity: '1모', expiry_date: expiryDate });
+      await UserInventory.create({ userId: adminUser.id, ingredientId: mincedBeef.id, quantity: '200g', expiry_date: expiryDate });
+    }
+
     console.log('Database seeded successfully!');
+
   } catch (error) {
     console.error('Error seeding database:', error);
   } finally {
