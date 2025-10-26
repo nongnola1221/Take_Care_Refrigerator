@@ -12,6 +12,9 @@ export default {
         background: '#FDFBF6',
         glass: 'rgba(255, 255, 255, 0.25)',
       },
+      fontFamily: {
+        sans: ['Pretendard', 'sans-serif'],
+      },
     },
   },
   plugins: [],

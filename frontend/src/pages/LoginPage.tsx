@@ -1,75 +1,64 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Form, Input, Button, Row, Col, Typography, notification } from 'antd';
+import { Link, useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
+import { MailOutlined, LockOutlined } from '@ant-design/icons';
+
+const { Title, Text } = Typography;
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, error } = useAuthStore();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { login } = useAuthStore();
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onFinish = async (values: any) => {
     setLoading(true);
-    const success = await login({ email, password });
+    const success = await login(values);
     setLoading(false);
     if (success) {
       navigate('/');
+      notification.success({ message: '로그인 성공!', description: '냉장고를 부탁해에 오신 것을 환영합니다.' });
+    } else {
+      notification.error({ message: '로그인 실패', description: useAuthStore.getState().error });
     }
   };
 
   return (
-    <div className="flex justify-center items-center py-12">
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 100, damping: 10 }}
-        className="w-full max-w-md p-8 space-y-6 bg-glass rounded-2xl shadow-2xl backdrop-blur-lg"
-      >
-        <h2 className="text-3xl font-bold text-center text-white">로그인</h2>
-        {error && <p className="text-center text-red-200 bg-red-500/30 p-3 rounded-lg">{error}</p>}
-        <form className="space-y-6" onSubmit={handleLogin}>
-          <div>
-            <label htmlFor="email" className="text-sm font-medium text-white/80">이메일 주소</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 mt-1 bg-white/10 border border-white/20 text-white rounded-md shadow-sm placeholder-white/50 focus:outline-none focus:ring-primary focus:border-primary"
-              placeholder="you@example.com"
-            />
+    <div className="min-h-screen w-full main-bg-gradient flex items-center justify-center p-4">
+      <div className="bg-glass p-8 rounded-2xl w-full max-w-md">
+        <Title level={2} className="text-center text-white mb-8 font-bold">로그인</Title>
+        <Form
+          name="login"
+          onFinish={onFinish}
+          layout="vertical"
+          size="large"
+        >
+          <Form.Item
+            name="email"
+            rules={[{ required: true, message: '이메일을 입력해주세요!' }]}
+          >
+            <Input prefix={<MailOutlined />} placeholder="이메일 주소" />
+          </Form.Item>
+
+          <Form.Item
+            name="password"
+            rules={[{ required: true, message: '비밀번호를 입력해주세요!' }]}
+          >
+            <Input.Password prefix={<LockOutlined />} placeholder="비밀번호" />
+          </Form.Item>
+
+          <Form.Item>
+            <Button htmlType="submit" loading={loading} className="w-full h-12 text-lg font-bold btn-grad rounded-full">
+              로그인
+            </Button>
+          </Form.Item>
+
+          <div className="text-center">
+            <Text className="text-gray-300">계정이 없으신가요? </Text>
+            <Link to="/register" className="font-semibold text-white hover:text-gray-200">회원가입</Link>
           </div>
-          <div>
-            <label htmlFor="password" className="text-sm font-medium text-white/80">비밀번호</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 mt-1 bg-white/10 border border-white/20 text-white rounded-md shadow-sm placeholder-white/50 focus:outline-none focus:ring-primary focus:border-primary"
-              placeholder="••••••••"
-            />
-          </div>
-          <div>
-            <motion.button
-              type="submit"
-              disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-primary/50"
-              whileHover={{ backgroundColor: "#1a9999", y: -2 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {loading ? '로그인 중...' : '로그인'}
-            </motion.button>
-          </div>
-        </form>
-      </motion.div>
+        </Form>
+      </div>
     </div>
   );
 };

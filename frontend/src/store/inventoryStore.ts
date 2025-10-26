@@ -11,21 +11,45 @@ interface InventoryItem {
   };
 }
 
+interface Ingredient {
+  id: number;
+  name: string;
+}
+
 interface InventoryState {
   inventory: InventoryItem[];
+  allIngredients: Ingredient[];
   fetchInventory: () => Promise<void>;
+  fetchAllIngredients: () => Promise<void>;
   addIngredient: (data: { ingredientName: string; quantity: string; expiry_date: string }) => Promise<void>;
   deleteIngredient: (id: number) => Promise<void>;
 }
 
-const useInventoryStore = create<InventoryState>((set) => ({
+const useInventoryStore = create<InventoryState>((set, get) => ({
   inventory: [],
+  allIngredients: [],
   fetchInventory: async () => {
     try {
       const response = await apiClient.get('/inventory');
       set({ inventory: response.data });
     } catch (error) {
       console.error("Error fetching inventory:", error);
+      notification.error({
+        message: '재고 목록 로딩 실패',
+        description: '재고 목록을 불러오는 중 오류가 발생했습니다.',
+      });
+    }
+  },
+  fetchAllIngredients: async () => {
+    try {
+      const response = await apiClient.get('/ingredients');
+      set({ allIngredients: response.data });
+    } catch (error) {
+      console.error("Error fetching all ingredients:", error);
+      notification.error({
+        message: '재료 목록 로딩 실패',
+        description: '전체 재료 목록을 불러오는 중 오류가 발생했습니다.',
+      });
     }
   },
   addIngredient: async (data) => {

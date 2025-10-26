@@ -1,63 +1,83 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { Form, Input, Button, DatePicker, AutoComplete, Row, Col } from 'antd';
 import useInventoryStore from '../store/inventoryStore';
 
 const AddIngredientForm = () => {
-  const addIngredient = useInventoryStore((state) => state.addIngredient);
-  const [ingredientName, setIngredientName] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [expiry_date, setExpiryDate] = useState('');
+  const [form] = Form.useForm();
+  const { addIngredient, allIngredients, fetchAllIngredients } = useInventoryStore();
+  const [options, setOptions] = useState<{ value: string }[]>([]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Client-side validation temporarily disabled for debugging
-    // if (!ingredientName || !quantity || !expiry_date) return;
-    await addIngredient({ ingredientName, quantity, expiry_date });
-    setIngredientName('');
-    setQuantity('');
-    setExpiryDate('');
+  useEffect(() => {
+    fetchAllIngredients();
+  }, [fetchAllIngredients]);
+
+  const handleSearch = (searchText: string) => {
+    if (!searchText) {
+      setOptions([]);
+    } else {
+      const filtered = allIngredients
+        .filter(i => i.name.toLowerCase().includes(searchText.toLowerCase()))
+        .map(i => ({ value: i.name }));
+      setOptions(filtered);
+    }
+  };
+
+  const onFinish = async (values: any) => {
+    const { ingredientName, quantity, expiry_date } = values;
+    await addIngredient({
+      ingredientName,
+      quantity,
+      expiry_date: expiry_date.format('YYYY-MM-DD'),
+    });
+    form.resetFields();
   };
 
   return (
-    <motion.form
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 100, damping: 10 }}
-      onSubmit={handleSubmit} className="p-6 bg-white/10 rounded-2xl shadow-inner backdrop-blur-md space-y-4"
+    <Form
+      form={form}
+      name="add_ingredient"
+      onFinish={onFinish}
+      layout="vertical"
     >
-      <h2 className="text-2xl font-bold text-white mb-4">새 재료 추가</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <input
-          type="text"
-          placeholder="재료명 (예: 삼겹살)"
-          value={ingredientName}
-          onChange={(e) => setIngredientName(e.target.value)}
-          className="p-3 bg-white/20 border border-white/30 text-white rounded-md shadow-sm placeholder-white/60 focus:outline-none focus:ring-primary focus:border-primary"
-        />
-        <input
-          type="text"
-          placeholder="수량 (예: 500g)"
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          className="p-3 bg-white/20 border border-white/30 text-white rounded-md shadow-sm placeholder-white/60 focus:outline-none focus:ring-primary focus:border-primary"
-        />
-        <input
-          type="date"
-          value={expiry_date}
-          onChange={(e) => setExpiryDate(e.target.value)}
-          className="p-3 bg-white/20 border border-white/30 text-white rounded-md shadow-sm placeholder-white/60 focus:outline-none focus:ring-primary focus:border-primary"
-        />
-      </div>
-      <motion.button
-        type="submit"
-        className="w-full px-4 py-3 bg-primary text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-        whileHover={{ backgroundColor: "#1a9999", y: -2 }}
-        whileTap={{ scale: 0.98 }}
+      <Row gutter={16}>
+        <Col xs={24} sm={12}>
+          <Form.Item
+            name="ingredientName"
+            label="재료명"
+            rules={[{ required: true, message: '재료명을 입력해주세요!' }]}
+          >
+            <AutoComplete
+              options={options}
+              onSearch={handleSearch}
+              placeholder="예: 돼지고기"
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={12}>
+          <Form.Item
+            name="quantity"
+            label="수량"
+            rules={[{ required: true, message: '수량을 입력해주세요!' }]}
+          >
+            <Input placeholder="예: 500g" />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Form.Item
+        name="expiry_date"
+        label="유통기한"
+        rules={[{ required: true, message: '유통기한을 입력해주세요!' }]}
       >
-        추가하기
-      </motion.button>
-    </motion.form>
+        <DatePicker style={{ width: '100%' }} />
+      </Form.Item>
+      <Form.Item>
+        <Button htmlType="submit" className="w-full h-12 text-lg font-bold btn-grad rounded-full">
+          추가하기
+        </Button>
+      </Form.Item>
+    </Form>
   );
 };
 
 export default AddIngredientForm;
+

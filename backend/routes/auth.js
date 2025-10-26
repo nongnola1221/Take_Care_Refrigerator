@@ -12,16 +12,19 @@ router.post('/register', async (req, res) => {
   try {
     const { email, password } = req.body;
     console.log('Register attempt for:', email);
+
+    // 이메일 중복 확인
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ error: '이미 사용 중인 이메일입니다.' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({ email, password_hash: hashedPassword });
     console.log('User registered successfully:', user.id);
     res.status(201).json({ id: user.id, email: user.email });
   } catch (error) {
     console.error('Registration error:', error.message);
-    if (error.name === 'SequelizeUniqueConstraintError') {
-      console.error('Unique constraint error details:', error.fields);
-      return res.status(400).json({ error: '이미 사용 중인 이메일입니다.' });
-    }
     res.status(400).json({ error: error.message });
   }
 });

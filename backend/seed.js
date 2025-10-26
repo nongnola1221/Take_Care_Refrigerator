@@ -1,5 +1,5 @@
 const { sequelize, models } = require('./models');
-const { Recipe, Ingredient, RecipeIngredient, User } = models;
+const { Recipe, Ingredient, RecipeIngredient, User, UserInventory } = models;
 const bcrypt = require('bcrypt');
 
 const ingredientsData = [
@@ -60,7 +60,36 @@ const seedDatabase = async () => {
 
     console.log('Creating admin user...');
     const adminPasswordHash = await bcrypt.hash('admin', 10);
-    await User.create({ email: 'admin@admin.com', password_hash: adminPasswordHash });
+    const adminUser = await User.create({ email: 'admin@admin', password_hash: adminPasswordHash });
+
+    console.log('Populating admin inventory...');
+    const kimchi = ingredients.find(i => i.name === '김치');
+    const pork = ingredients.find(i => i.name === '돼지고기');
+    const onion = ingredients.find(i => i.name === '양파');
+
+    if (adminUser && kimchi && pork && onion) {
+      const today = new Date();
+      const expiryDate = new Date(new Date().setDate(today.getDate() + 7)); // 7 days from now
+
+      await UserInventory.create({
+        userId: adminUser.id,
+        ingredientId: kimchi.id,
+        quantity: '500g',
+        expiry_date: expiryDate,
+      });
+      await UserInventory.create({
+        userId: adminUser.id,
+        ingredientId: pork.id,
+        quantity: '300g',
+        expiry_date: expiryDate,
+      });
+      await UserInventory.create({
+        userId: adminUser.id,
+        ingredientId: onion.id,
+        quantity: '2개',
+        expiry_date: expiryDate,
+      });
+    }
 
     console.log('Seeding recipes...');
     for (const recipeData of recipesData) {

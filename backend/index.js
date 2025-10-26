@@ -7,6 +7,7 @@ const inventoryRoutes = require('./routes/inventory');
 const recommendationRoutes = require('./routes/recommendations');
 const recipeRoutes = require('./routes/recipes');
 const actionRoutes = require('./routes/actions');
+const ingredientsRoutes = require('./routes/ingredients');
 
 const app = express();
 app.use(cors());
@@ -18,6 +19,7 @@ app.use('/api/inventory', inventoryRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/actions', actionRoutes);
+app.use('/api/ingredients', ingredientsRoutes);
 
 const PORT = process.env.PORT || 3000;
 
