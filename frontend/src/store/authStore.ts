@@ -22,7 +22,7 @@ const useAuthStore = create<AuthState>((set) => ({
       localStorage.setItem('token', token);
       set({ token, isAuthenticated: true });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed:", error);
       set({ error: '이메일 또는 비밀번호가 올바르지 않습니다.', isAuthenticated: false });
       return false;
@@ -35,7 +35,7 @@ const useAuthStore = create<AuthState>((set) => ({
       const response = await apiClient.post(`/auth/register`, data);
       console.log('Frontend: Registration successful', response.data);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Frontend: Registration failed:", error.response?.data || error.message);
       set({ error: '회원가입에 실패했습니다. 이미 사용중인 이메일일 수 있습니다.' });
       return false;
