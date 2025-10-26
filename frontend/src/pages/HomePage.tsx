@@ -22,6 +22,12 @@ const HomePage = () => {
     });
   };
 
+  const handleRandomRecommendClick = () => {
+    setCuisine('');
+    setServings(undefined);
+    fetchRecommendations({}); // Fetch with no filters for random
+  };
+
   return (
     <div className="container mx-auto p-4">
       <motion.div
@@ -57,6 +63,26 @@ const HomePage = () => {
             whileTap={{ scale: 0.98 }}
           >
             {loading ? '찾는 중...' : '추천받기'}
+          </motion.button>
+        </div>
+        <div className="flex justify-center gap-4 mt-4">
+          <motion.button
+            onClick={handleRecommendClick}
+            disabled={loading}
+            className="px-6 py-3 bg-secondary text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary disabled:bg-secondary/50"
+            whileHover={{ backgroundColor: "#3a5bbd", y: -2 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            재검색
+          </motion.button>
+          <motion.button
+            onClick={handleRandomRecommendClick}
+            disabled={loading}
+            className="px-6 py-3 bg-gray-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-600 disabled:bg-gray-400"
+            whileHover={{ backgroundColor: "#4a4a4a", y: -2 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            랜덤 추천
           </motion.button>
         </div>
       </motion.div>
