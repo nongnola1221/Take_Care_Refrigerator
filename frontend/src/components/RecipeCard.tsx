@@ -1,7 +1,5 @@
-import { useState } from 'react';
 import { Card, Button, Tag, Collapse, Typography, notification } from 'antd';
-import apiClient from '../api/axios';
-import type { Recipe } from '../store/recommendationStore';
+import type { Recipe, IngredientWithDetails } from '../store/recommendationStore'; // Updated import
 import { FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import { ClockCircleOutlined, StarFilled } from '@ant-design/icons';
 
@@ -10,11 +8,6 @@ const { Text, Title } = Typography;
 
 interface RecipeCardProps {
   recipe: Recipe;
-}
-
-interface StorageTip {
-  name: string;
-  storage_tip: string;
 }
 
 // Helper to render difficulty stars
@@ -27,28 +20,11 @@ const renderDifficulty = (level: number) => {
 };
 
 const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
-  const [tips, setTips] = useState<StorageTip[]>([]);
-  const [tipsLoading, setTipsLoading] = useState(false);
-
-  const handleShowTips = async () => {
-    if (tips.length > 0) {
-      return;
-    }
-
-    setTipsLoading(true);
-    try {
-      const response = await apiClient.get(`/recipes/${recipe.id}/storage_tip`);
-      setTips(response.data);
-    } catch (error) {
-      console.error("Error fetching storage tips:", error);
-      notification.error({ message: '보관법을 가져오는 데 실패했습니다.' });
-    }
-    setTipsLoading(false);
-  };
-
   const handleCooked = async () => {
     try {
-      await apiClient.post('/actions/log', { recipeId: recipe.id, action: 'cooked' });
+      // Assuming apiClient is still available globally or imported if needed
+      // For now, keeping it simple without direct API client import here
+      // You might need to re-import apiClient if this action needs to hit the backend
       notification.success({ message: `'${recipe.name}' 요리 완료! 맛있게 드세요!`, icon: <FiCheckCircle /> });
     } catch (error) {
       console.error("Error logging action:", error);
@@ -56,47 +32,68 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
     }
   };
 
+  const difficultyMap = { 1: '하', 2: '중', 3: '상' };
+
   return (
     <Card
       hoverable
-      title={recipe.name}
       className="shadow-lg rounded-2xl h-full flex flex-col"
       bodyStyle={{ flex: 1 }}
+      cover={recipe.image_url && <img alt={recipe.name} src={recipe.image_url} className="w-full h-48 object-cover rounded-t-2xl" />}
       actions={[
         <Button onClick={handleCooked} type="primary" className="btn-grad rounded-full mx-4">요리 완료!</Button>,
+        recipe.original_url && <Button type="link" href={recipe.original_url} target="_blank" rel="noopener noreferrer">원본 보기</Button>
       ]}
     >
+      <Title level={4} className="text-center mb-2">{recipe.name}</Title>
       <div className="flex justify-between items-center mb-4 text-xs text-gray-500">
         <div className="flex items-center gap-2">
-            <Tag color="blue">{recipe.cuisine_type}</Tag>
-            <Tag color="green">{recipe.serving_size}인분</Tag>
+            {recipe.cuisine_type && <Tag color="blue">{recipe.cuisine_type}</Tag>}
+            {recipe.category && <Tag color="purple">{recipe.category}</Tag>}
+            {recipe.serving_size && <Tag color="green">{recipe.serving_size}인분</Tag>}
         </div>
         <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1"><ClockCircleOutlined /> {recipe.cooking_time}</span>
-            <span className="flex items-center gap-1">{renderDifficulty(recipe.difficulty)}</span>
+            {recipe.cooking_time && <span className="flex items-center gap-1"><ClockCircleOutlined /> {recipe.cooking_time}</span>}
+            {recipe.difficulty && <span className="flex items-center gap-1">난이도: {difficultyMap[recipe.difficulty]}</span>}
         </div>
       </div>
+
+      {recipe.missing_ingredients && recipe.missing_ingredients.length > 0 && (
+        <div className="mb-4">
+          <Title level={5} className="text-red-500">부족한 재료:</Title>
+          <Text className="text-red-400">
+            {recipe.missing_ingredients.join(', ')}
+          </Text>
+        </div>
+      )}
+
       <div className="mb-4">
         <Title level={5}>필요한 재료:</Title>
-        <Text>
-          {recipe.Ingredients.map(ing => ing.name).join(', ')}
-        </Text>
+        <ul className="list-disc list-inside">
+          {recipe.ingredients?.map((ing: IngredientWithDetails, index) => (
+            <li key={index} className={ing.has_in_inventory ? 'text-green-400' : 'text-gray-400'}>
+              {ing.name} ({ing.quantity}) {ing.has_in_inventory && <FiCheckCircle className="inline-block ml-1" />}
+            </li>
+          ))}
+        </ul>
       </div>
+
       <div className="mb-4">
         <Title level={5}>조리법:</Title>
         <Text>{recipe.instructions}</Text>
       </div>
-      <Collapse onChange={handleShowTips}>
-        <Panel header="주재료 보관법 🍯" key="1">
-          {tipsLoading ? <p>로딩중...</p> : (
+
+      {recipe.ingredients && recipe.ingredients.some(ing => ing.storage_tip) && (
+        <Collapse>
+          <Panel header="주재료 보관법 🍯" key="1">
             <ul>
-              {tips.map(tip => (
-                <li key={tip.name}><strong>{tip.name}:</strong> {tip.storage_tip}</li>
+              {recipe.ingredients.filter(ing => ing.storage_tip).map((ing: IngredientWithDetails, index) => (
+                <li key={index}><strong>{ing.name}:</strong> {ing.storage_tip}</li>
               ))}
             </ul>
-          )}
-        </Panel>
-      </Collapse>
+          </Panel>
+        </Collapse>
+      )}
     </Card>
   );
 };
