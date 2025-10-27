@@ -49,11 +49,11 @@ const processRecipeForUser = (recipe, userIngredients) => {
   };
 };
 
-// Existing recommendation endpoint (now also calculates missing ingredients and adds storage tips)
+// Main recommendation endpoint with crawling fallback
 router.post('/', async (req, res) => {
   try {
     const userId = req.user.id;
-    const { cuisine_type, serving_size, difficulty } = req.body; // Added difficulty filter
+    const { cuisine_type, serving_size, difficulty, searchQuery, categoryFilter } = req.body; // Added searchQuery, categoryFilter
 
     const userInventoryItems = await UserInventory.findAll({
       where: { userId },
@@ -61,135 +61,77 @@ router.post('/', async (req, res) => {
     });
     const userIngredients = userInventoryItems.map(item => item.Ingredient.name);
 
-    const allRecipes = await Recipe.findAll({ include: Ingredient });
+    let allRecipes = await Recipe.findAll({ include: Ingredient });
+    let finalRecommendations = [];
 
-    const recommendations = [];
-    for (const recipe of allRecipes) {
-      const recipeIngredients = recipe.Ingredients.map(ing => ing.name);
+    // --- Recommendation Logic --- //
+    const runRecommendationLogic = (recipesToProcess) => {
+      const recommendations = [];
+      for (const recipe of recipesToProcess) {
+        const recipeIngredients = recipe.Ingredients.map(ing => ing.name);
 
-      const tfidf = new TfIdf();
-      tfidf.addDocument(userIngredients.join(' '));
-      tfidf.addDocument(recipeIngredients.join(' '));
+        const tfidf = new TfIdf();
+        tfidf.addDocument(userIngredients.join(' '));
+        tfidf.addDocument(recipeIngredients.join(' '));
 
-      const userVector = {};
-      tfidf.listTerms(0).forEach(term => {
-        userVector[term.term] = term.tfidf;
-      });
+        const userVector = {};
+        tfidf.listTerms(0).forEach(term => {
+          userVector[term.term] = term.tfidf;
+        });
 
-      const recipeVector = {};
-      tfidf.listTerms(1).forEach(term => {
-        recipeVector[term.term] = term.tfidf;
-      });
+        const recipeVector = {};
+        tfidf.listTerms(1).forEach(term => {
+          recipeVector[term.term] = term.tfidf;
+        });
 
-      const similarity = cosineSimilarity(userVector, recipeVector);
+        const similarity = cosineSimilarity(userVector, recipeVector);
 
-      if (similarity > 0) { // Include all recipes with some similarity
-        recommendations.push({ recipe, score: similarity });
+        if (similarity > 0) { // Include all recipes with some similarity
+          recommendations.push({ recipe, score: similarity });
+        }
       }
-    }
 
-    recommendations.sort((a, b) => b.score - a.score);
+      recommendations.sort((a, b) => b.score - a.score);
 
-    let filteredRecommendations = recommendations.map(r => r.recipe);
+      let filtered = recommendations.map(r => r.recipe);
 
-    if (cuisine_type) {
-      filteredRecommendations = filteredRecommendations.filter(r => r.cuisine_type === cuisine_type);
-    }
-    if (serving_size) {
-      filteredRecommendations = filteredRecommendations.filter(r => r.serving_size <= serving_size);
-    }
-    if (difficulty) { // Apply difficulty filter
-      filteredRecommendations = filteredRecommendations.filter(r => r.difficulty === difficulty);
-    }
+      if (cuisine_type) {
+        filtered = filtered.filter(r => r.cuisine_type === cuisine_type);
+      }
+      if (serving_size) {
+        filtered = filtered.filter(r => r.serving_size <= serving_size);
+      }
+      if (difficulty) {
+        filtered = filtered.filter(r => r.difficulty === difficulty);
+      }
+      if (categoryFilter) { // Apply specific category filter
+        filtered = filtered.filter(r => r.category === categoryFilter);
+      }
+      return filtered.map(recipe => processRecipeForUser(recipe, userIngredients));
+    };
 
-    const finalRecommendations = filteredRecommendations.map(recipe => processRecipeForUser(recipe, userIngredients));
+    // 1. Run initial recommendation on existing DB recipes
+    finalRecommendations = runRecommendationLogic(allRecipes);
+
+    // 2. If no recommendations found and searchQuery is provided, trigger crawling
+    if (finalRecommendations.length === 0 && searchQuery) {
+      console.log(`No local recipes found for query "${searchQuery}". Initiating crawl...`);
+      const crawledRecipesData = await crawlRecipes(searchQuery, categoryFilter);
+      const savedRecipes = [];
+      for (const recipeData of crawledRecipesData) {
+        const savedRecipe = await saveCrawledRecipe(recipeData);
+        if (savedRecipe) savedRecipes.push(savedRecipe);
+      }
+
+      // Re-fetch all recipes to include newly crawled ones
+      allRecipes = await Recipe.findAll({ include: Ingredient });
+      finalRecommendations = runRecommendationLogic(allRecipes);
+    }
 
     res.json(finalRecommendations);
 
   } catch (error) {
     console.error('Error in POST /recommendations:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// New endpoint for on-demand crawling and recommendation
-router.get('/crawl-and-recommend', async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { searchQuery, categoryFilter, cuisine_type, serving_size, difficulty } = req.query; // Use req.query for GET
-
-    if (!searchQuery) {
-      return res.status(400).json({ error: '검색어가 필요합니다.' });
-    }
-
-    // 1. Crawl recipes based on search query and category filter
-    const crawledRecipesData = await crawlRecipes(searchQuery, categoryFilter);
-    const savedRecipes = [];
-    for (const recipeData of crawledRecipesData) {
-      const savedRecipe = await saveCrawledRecipe(recipeData);
-      if (savedRecipe) savedRecipes.push(savedRecipe);
-    }
-
-    // 2. Fetch user's inventory
-    const userInventoryItems = await UserInventory.findAll({
-      where: { userId },
-      include: Ingredient,
-    });
-    const userIngredients = userInventoryItems.map(item => item.Ingredient.name);
-
-    // 3. Fetch all recipes (including newly saved ones) for recommendation
-    const allRecipes = await Recipe.findAll({ include: Ingredient });
-
-    // 4. Calculate similarity and filter
-    const recommendations = [];
-    for (const recipe of allRecipes) {
-      const recipeIngredients = recipe.Ingredients.map(ing => ing.name);
-
-      const tfidf = new TfIdf();
-      tfidf.addDocument(userIngredients.join(' '));
-      tfidf.addDocument(recipeIngredients.join(' '));
-
-      const userVector = {};
-      tfidf.listTerms(0).forEach(term => {
-        userVector[term.term] = term.tfidf;
-      });
-
-      const recipeVector = {};
-      tfidf.listTerms(1).forEach(term => {
-        recipeVector[term.term] = term.tfidf;
-      });
-
-      const similarity = cosineSimilarity(userVector, recipeVector);
-
-      if (similarity > 0) { // Include all recipes with some similarity
-        recommendations.push({ recipe, score: similarity });
-      }
-    }
-
-    recommendations.sort((a, b) => b.score - a.score);
-
-    let filteredRecommendations = recommendations.map(r => r.recipe);
-
-    // Apply filters from query parameters
-    if (cuisine_type) {
-      filteredRecommendations = filteredRecommendations.filter(r => r.cuisine_type === cuisine_type);
-    }
-    if (serving_size) {
-      filteredRecommendations = filteredRecommendations.filter(r => r.serving_size <= serving_size);
-    }
-    if (difficulty) {
-      filteredRecommendations = filteredRecommendations.filter(r => r.difficulty === difficulty);
-    }
-    if (categoryFilter) { // Apply specific category filter
-      filteredRecommendations = filteredRecommendations.filter(r => r.category === categoryFilter);
-    }
-
-    const finalRecommendations = filteredRecommendations.map(recipe => processRecipeForUser(recipe, userIngredients));
-
-    res.json(finalRecommendations);
-
-  } catch (error) {
-    console.error('Error in GET /recommendations/crawl-and-recommend:', error);
     res.status(500).json({ error: error.message });
   }
 });
