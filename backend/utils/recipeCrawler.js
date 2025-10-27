@@ -34,6 +34,7 @@ const crawlRecipeDetails = async (recipeUrl) => {
 
     const name = $('div.view2_summary > h3').text().trim();
     const imageUrl = $('div.centeredcrop > img').attr('src');
+    console.log(`Extracted Image URL: ${imageUrl}`);
     const instructions = [];
     $('div.view_step_cont > div.view_step_cont_text').each((i, el) => {
       const stepText = $(el).text().trim();
