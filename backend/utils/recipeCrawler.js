@@ -105,12 +105,11 @@ const crawlRecipeDetails = async (recipeUrl) => {
 const crawlRecipes = async (searchQuery, categoryFilter) => {
   try {
     let searchUrl = `${MANGNA_RECIPE_BASE_URL}/recipe/list.html?q=${encodeURIComponent(searchQuery)}`;
-    // 만개의레시피는 카테고리 필터링을 URL 파라미터로 직접 지원하지 않을 수 있습니다.
-    // 이 부분은 실제 사이트 구조에 따라 조정이 필요합니다.
-    // 현재는 검색어에 카테고리를 포함하거나, 검색 후 필터링하는 방식으로 가정합니다.
+    console.log(`Crawling search URL: ${searchUrl}`);
 
     const { data } = await axios.get(searchUrl);
     const $ = cheerio.load(data);
+    console.log(`Fetched search page HTML for query: ${searchQuery}`);
 
     const recipeLinks = [];
     $('.common_sp_list_ul li').each((i, el) => {
@@ -119,6 +118,7 @@ const crawlRecipes = async (searchQuery, categoryFilter) => {
         recipeLinks.push(MANGNA_RECIPE_BASE_URL + link);
       }
     });
+    console.log(`Found ${recipeLinks.length} recipe links on search page.`);
 
     const crawledRecipes = [];
     for (const link of recipeLinks) {
