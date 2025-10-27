@@ -20,14 +20,4 @@ apiClient.interceptors.request.use(
   }
 );
 
-export const crawlAndRecommendRecipes = async (params) => {
-  try {
-    const response = await apiClient.get('/recommendations/crawl-and-recommend', { params });
-    return response.data;
-  } catch (error) {
-    console.error('Error crawling and recommending recipes:', error);
-    throw error;
-  }
-};
-
 export default apiClient;

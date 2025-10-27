@@ -16,7 +16,7 @@ const HomePage = () => {
     fetchRecommendations,
   } = useRecommendationStore();
 
-  const [mode, setMode] = useState<'ingredient' | 'random'>('ingredient'); // Removed 'crawling' mode
+  const [mode, setMode] = useState<'ingredient' | 'random'>('ingredient');
   const [cuisine, setCuisine] = useState('');
   const [servings, setServings] = useState<number | null>(null);
   const [difficulty, setDifficulty] = useState<number | null>(null);
