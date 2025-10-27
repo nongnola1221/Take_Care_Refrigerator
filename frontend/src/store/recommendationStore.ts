@@ -3,54 +3,65 @@ import apiClient from '../api/axios';
 
 export interface IngredientWithDetails {
   name: string;
-  quantity: string;
-  storage_tip: string;
+  quantity?: string;
   has_in_inventory: boolean;
+  storage_tip?: string;
 }
 
 export interface Recipe {
-  id: number;
+  id: string;
   name: string;
-  instructions: string;
+  image_url?: string;
+  original_url?: string;
   cuisine_type?: string;
-  serving_size?: number;
+  category?: string;
+  serving_size?: string;
   cooking_time?: string;
   difficulty?: number;
-  original_url?: string;
-  image_url?: string;
-  source?: string;
-  category?: string;
+  difficulty_text?: string;
+  instructions?: string;
   ingredients: IngredientWithDetails[];
-  missing_ingredients?: string[];
+  missing_ingredients: string[];
 }
 
 interface RecommendationState {
-  recommendations: Recipe[] | null;
+  recommendations: Recipe[];
+  allRecipes: Recipe[]; // New state for all recipes
   loading: boolean;
   error: string | null;
   message: string | null;
-  fetchRecommendations: (filters: { cuisine_type?: string; serving_size?: number; difficulty?: number; searchQuery?: string; categoryFilter?: string }) => Promise<void>;
+  fetchRecommendations: (filters?: any) => Promise<void>;
+  fetchAllRecipes: () => Promise<void>; // New function
 }
 
-const useRecommendationStore = create<RecommendationState>((set) => ({
-  recommendations: null,
+export const useRecommendationStore = create<RecommendationState>((set) => ({
+  recommendations: [],
+  allRecipes: [], // Initialize new state
   loading: false,
   error: null,
   message: null,
-  fetchRecommendations: async (filters) => {
-    set({ loading: true, error: null, message: null, recommendations: null });
+  fetchRecommendations: async (filters = {}) => {
+    set({ loading: true, error: null, message: null });
     try {
-      const response = await apiClient.post(`/recommendations`, filters);
-      if (response.data.message) {
-        set({ message: response.data.message, loading: false });
-      } else {
-        set({ recommendations: response.data, loading: false });
+      const response = await apiClient.post('/recommendations', filters);
+      if (response.data.length === 0) {
+        set({ message: '추천할 레시피가 없습니다. 다른 검색어를 시도해보세요.' });
       }
+      set({ recommendations: response.data });
+    } catch (error: any) {
+      set({ error: error.response?.data?.error || '추천을 가져오는 데 실패했습니다.' });
+    } finally {
+      set({ loading: false });
+    }
+  },
+  // New implementation for fetchAllRecipes
+  fetchAllRecipes: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await apiClient.get<Recipe[]>('/recommendations/all-from-csv');
+      set({ allRecipes: response.data, loading: false });
     } catch (error) {
-      console.error("Error fetching recommendations:", error);
-      set({ error: '추천을 받아오는 중 오류가 발생했습니다.', loading: false });
+      set({ error: 'Failed to fetch all recipes', loading: false });
     }
   },
 }));
-
-export default useRecommendationStore;

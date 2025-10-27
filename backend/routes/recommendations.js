@@ -1,4 +1,7 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const { parse } = require('csv-parse');
 const authenticateToken = require('../middleware/auth');
 const { TfIdf } = require('natural');
 const { models } = require('../models');
@@ -136,5 +139,133 @@ router.post('/', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+
+
+// New endpoint to get all recipes from CSV with missing ingredients
+
+router.get('/all-from-csv', async (req, res) => {
+
+  try {
+
+    const userId = req.user.id;
+
+
+
+    // 1. Get user's inventory
+
+    const userInventoryItems = await UserInventory.findAll({
+
+      where: { userId },
+
+      include: Ingredient,
+
+    });
+
+    const userIngredients = userInventoryItems.map(item => item.Ingredient.name);
+
+
+
+    // 2. Read and parse the CSV file
+
+    const csvFilePath = path.join(__dirname, '../../', 'TB_RECIPE_SEARCH_241226.csv');
+
+    const fileContent = fs.readFileSync(csvFilePath, { encoding: 'utf-8' });
+
+    
+
+    parse(fileContent, {
+
+      columns: true,
+
+      skip_empty_lines: true
+
+    }, (err, records) => {
+
+      if (err) {
+
+        console.error('Error parsing CSV:', err);
+
+        return res.status(500).json({ error: 'Failed to parse recipe data.' });
+
+      }
+
+
+
+      // 3. Process each recipe
+
+      const allRecipes = records.map(recipe => {
+
+        const requiredIngredients = (recipe.CKG_MTRL_CN || '')
+
+          .replace(/\[.*?\]/g, '') // Remove text in brackets like [재료]
+
+          .split('|')
+
+          .map(ing => ing.split(',')[0].trim()) // Take the first part of comma-separated values
+
+          .filter(ing => ing); // Filter out empty strings
+
+
+
+        const missingIngredients = requiredIngredients.filter(ing => !userIngredients.includes(ing));
+
+
+
+        return {
+
+          id: recipe.RCP_SNO,
+
+          name: recipe.CKG_NM || recipe.RCP_TTL,
+
+          image_url: recipe.RCP_IMG_URL,
+
+          ingredients: requiredIngredients.map(ing => ({
+
+            name: ing,
+
+            has_in_inventory: userIngredients.includes(ing)
+
+          })),
+
+          missing_ingredients: missingIngredients,
+
+          cuisine_type: recipe.CKG_KND_ACTO_NM,
+
+          category: recipe.CKG_STA_ACTO_NM,
+
+          serving_size: recipe.CKG_INBUN_NM,
+
+          cooking_time: recipe.CKG_TIME_NM,
+
+          difficulty_text: recipe.CKG_DODF_NM,
+
+          instructions: recipe.CKG_IPDC,
+
+          original_url: `https://www.10000recipe.com/recipe/${recipe.RCP_SNO}`
+
+        };
+
+      });
+
+
+
+      res.json(allRecipes);
+
+    });
+
+
+
+  } catch (error) {
+
+    console.error('Error in GET /all-from-csv:', error);
+
+    res.status(500).json({ error: error.message });
+
+  }
+
+});
+
+
 
 module.exports = router;

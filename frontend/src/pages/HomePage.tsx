@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Select, InputNumber, Button, Row, Col, Typography, Card, Segmented, Input } from 'antd';
-import useRecommendationStore from '../store/recommendationStore';
+import { useRecommendationStore, Recipe } from '../store/recommendationStore';
 import RecipeCard from '../components/RecipeCard';
 
 const { Title } = Typography;
@@ -145,7 +145,7 @@ const HomePage = () => {
           {loading && <p className="text-center text-xl text-white/80">레시피를 가져오는 중입니다... (크롤링으로 인해 시간이 다소 소요될 수 있습니다)</p>}
           <AnimatePresence>
             <Row gutter={[16, 16]}>
-              {recommendations?.map((recipe) => (
+              {recommendations?.map((recipe: Recipe) => (
                 <Col xs={24} sm={12} lg={8} key={recipe.id}>
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
                     <RecipeCard recipe={recipe} />

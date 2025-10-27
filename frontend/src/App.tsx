@@ -7,6 +7,8 @@ import RegisterPage from './pages/RegisterPage';
 import useAuthStore from './store/authStore';
 import { subscribeToPush } from './utils/push';
 
+import AllRecipesPage from './pages/AllRecipesPage'; // Import the new page
+
 const AuthenticatedApp = () => {
   const { logout } = useAuthStore();
   return (
@@ -20,6 +22,9 @@ const AuthenticatedApp = () => {
             <div className="flex items-center gap-4">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link to="/" className="hover:text-gray-200 transition-colors">레시피 추천</Link>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link to="/all-recipes" className="hover:text-gray-200 transition-colors">모든 레시피</Link>  // New Link
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link to="/inventory" className="hover:text-gray-200 transition-colors">재고 관리</Link>
@@ -47,6 +52,7 @@ const AuthenticatedApp = () => {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/inventory" element={<InventoryPage />} />
+            <Route path="/all-recipes" element={<AllRecipesPage />} /> // New Route
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
