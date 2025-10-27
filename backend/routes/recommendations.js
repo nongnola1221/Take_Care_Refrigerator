@@ -113,10 +113,11 @@ router.post('/', async (req, res) => {
     // 1. Run initial recommendation on existing DB recipes
     finalRecommendations = runRecommendationLogic(allRecipes);
 
-    // 2. If no recommendations found and searchQuery is provided, trigger crawling
-    if (finalRecommendations.length === 0 && searchQuery) {
-      console.log(`No local recipes found for query "${searchQuery}". Initiating crawl...`);
-      const crawledRecipesData = await crawlRecipes(searchQuery, categoryFilter);
+    // 2. If no recommendations found, trigger crawling (if searchQuery is provided or for random)
+    if (finalRecommendations.length === 0) {
+      const actualSearchQuery = searchQuery || '레시피'; // Use a default search query for random/empty search
+      console.log(`No local recipes found. Initiating crawl for "${actualSearchQuery}"...`);
+      const crawledRecipesData = await crawlRecipes(actualSearchQuery, categoryFilter);
       const savedRecipes = [];
       for (const recipeData of crawledRecipesData) {
         const savedRecipe = await saveCrawledRecipe(recipeData);
