@@ -10,7 +10,7 @@ const actionRoutes = require('./routes/actions');
 const ingredientsRoutes = require('./routes/ingredients');
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: 'https://nongnola1221.github.io' }));
 app.use(express.json());
 
 // Routes
