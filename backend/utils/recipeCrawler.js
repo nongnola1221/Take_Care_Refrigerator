@@ -32,31 +32,54 @@ const crawlRecipeDetails = async (recipeUrl) => {
     const { data } = await axios.get(recipeUrl);
     const $ = cheerio.load(data);
 
-    const name = $('.view_title h3').text().trim();
-    const imageUrl = $('.view_step img').first().attr('src'); // Assuming first image in steps is main
+    const name = $('div.view2_summary > h3').text().trim();
+    const imageUrl = $('div.centeredcrop > img').attr('src');
     const instructions = [];
-    $('.view_step_cont.media').each((i, el) => {
-      const stepText = $(el).find('.view_step_cont_text').text().trim();
-      if (stepText) instructions.push(`${i + 1}. ${stepText}`);
+    $('div.view_step_cont > div.view_step_cont_text').each((i, el) => {
+      const stepText = $(el).text().trim();
+      if (stepText) instructions.push(`${i + 1}. ${stepText.replace(/\n/g, ' ').trim()}`); // Clean up newlines
     });
 
     const ingredients = [];
-    $('.ready_ingre3 ul li').each((i, el) => {
+    $('div.ready_ingre3 ul li').each((i, el) => {
       const ingreName = $(el).find('a').text().trim();
-      const ingreQty = $(el).find('span').text().trim();
+      const ingreQty = $(el).find('span.cnt').text().trim();
       if (ingreName) ingredients.push({ name: ingreName, quantity: ingreQty });
     });
 
-    const difficultyText = $('.view_info li:contains("난이도") .view_info_data').text().trim();
-    let difficulty = 0; // Default to 0
-    if (difficultyText.includes('초급')) difficulty = 1;
-    else if (difficultyText.includes('중급')) difficulty = 2;
-    else if (difficultyText.includes('고급')) difficulty = 3;
+    // Extract difficulty, cooking time, serving size
+    let difficulty = 0; // Default
+    let cookingTime = '';
+    let servingSize = '';
 
-    const cookingTime = $('.view_info li:contains("시간") .view_info_data').text().trim();
-    const servingSize = $('.view_info li:contains("인분") .view_info_data').text().trim();
-    const cuisineTypeText = $('.view_tag a').first().text().trim(); // Assuming first tag is main category
-    const { cuisine_type, category } = mapCategory(cuisineTypeText);
+    $('div.view2_summary_info li').each((i, el) => {
+      const label = $(el).find('span.icon_tag').text().trim();
+      const value = $(el).find('span.view2_summary_info2').text().trim();
+      if (label === '난이도') {
+        if (value.includes('초급')) difficulty = 1;
+        else if (value.includes('중급')) difficulty = 2;
+        else if (value.includes('고급')) difficulty = 3;
+      } else if (label === '시간') {
+        cookingTime = value;
+      } else if (label === '인원') {
+        servingSize = value;
+      }
+    });
+
+    // Extract categories (use the first few relevant tags)
+    let cuisineTypeText = '';
+    const categoryTags = [];
+    $('div.view_tag a').each((i, el) => {
+      const tagText = $(el).text().trim();
+      if (tagText && tagText.length < 10) { // Avoid overly long tags like full descriptions
+        categoryTags.push(tagText);
+      }
+    });
+    // Try to derive cuisine_type from the first few tags, or use a general one
+    if (categoryTags.length > 0) {
+        cuisineTypeText = categoryTags[0]; // Use the first tag as a primary classifier
+    }
+    const { cuisine_type, category } = mapCategory(cuisineTypeText || '기타');
 
     return {
       name,
@@ -66,9 +89,9 @@ const crawlRecipeDetails = async (recipeUrl) => {
       ingredients, // Array of { name, quantity }
       difficulty,
       cooking_time: cookingTime,
-      serving_size: servingSize,
+      serving_size: servingSize.replace('인분', '').trim(), // Remove "인분" text
       cuisine_type,
-      category,
+      category: categoryTags.join(', ') || category, // Store all relevant tags, or the primary mapped category
       source: '만개의레시피',
     };
   } catch (error) {
