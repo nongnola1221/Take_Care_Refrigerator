@@ -27,6 +27,19 @@ const Recipe = sequelize.define('Recipe', {
   difficulty: {
     type: DataTypes.INTEGER,
   },
+  original_url: {
+    type: DataTypes.STRING,
+  },
+  image_url: {
+    type: DataTypes.STRING,
+  },
+  source: {
+    type: DataTypes.STRING,
+    defaultValue: 'user_created', // Default to user_created if not specified
+  },
+  category: {
+    type: DataTypes.STRING, // For specific recipe types like '밑반찬', '메인반찬'
+  },
 });
 
 module.exports = Recipe;

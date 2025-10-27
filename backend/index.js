@@ -23,7 +23,7 @@ app.use('/api/ingredients', ingredientsRoutes);
 
 const PORT = process.env.PORT || 3000;
 
-sequelize.sync().then(() => {
+sequelize.sync({ alter: true }).then(() => {
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
