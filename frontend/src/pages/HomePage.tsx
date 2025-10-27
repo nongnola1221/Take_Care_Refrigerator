@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Select, InputNumber, Button, Row, Col, Typography, Card, Segmented, Input } from 'antd'; // Added Input
+import { Select, InputNumber, Button, Row, Col, Typography, Card, Segmented, Input } from 'antd';
 import useRecommendationStore from '../store/recommendationStore';
 import RecipeCard from '../components/RecipeCard';
 
@@ -14,13 +14,12 @@ const HomePage = () => {
     error,
     message,
     fetchRecommendations,
-    crawlAndFetchRecommendations, // Added new action
   } = useRecommendationStore();
 
-  const [mode, setMode] = useState<'ingredient' | 'random' | 'crawling'>('ingredient'); // Added 'crawling' mode
+  const [mode, setMode] = useState<'ingredient' | 'random'>('ingredient'); // Removed 'crawling' mode
   const [cuisine, setCuisine] = useState('');
   const [servings, setServings] = useState<number | null>(null);
-  const [difficulty, setDifficulty] = useState<number | null>(null); // Added difficulty state
+  const [difficulty, setDifficulty] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState(''); // Added search query state
   const [categoryFilter, setCategoryFilter] = useState(''); // Added category filter state
   const [hasSearched, setHasSearched] = useState(false);
@@ -29,24 +28,15 @@ const HomePage = () => {
     fetchRecommendations({
       cuisine_type: cuisine || undefined,
       serving_size: servings || undefined,
-      difficulty: difficulty || undefined, // Added difficulty
-    });
-    setHasSearched(true);
-  };
-
-  const handleCrawlAndRecommendClick = () => {
-    crawlAndFetchRecommendations({
-      searchQuery: searchQuery || undefined,
-      categoryFilter: categoryFilter || undefined,
-      cuisine_type: cuisine || undefined, // Can still apply these filters after crawling
-      serving_size: servings || undefined,
       difficulty: difficulty || undefined,
+      searchQuery: searchQuery || undefined, // Pass searchQuery
+      categoryFilter: categoryFilter || undefined, // Pass categoryFilter
     });
     setHasSearched(true);
   };
 
   const handleRandomRecommendClick = () => {
-    fetchRecommendations({});
+    fetchRecommendations({}); // Random recommendation doesn't need specific filters
     setHasSearched(true);
   };
 
@@ -69,7 +59,6 @@ const HomePage = () => {
           options={[
             { label: '재료 기반 추천', value: 'ingredient' }, 
             { label: '랜덤 추천', value: 'random' },
-            { label: '크롤링 추천', value: 'crawling' } // Added crawling mode
           ]}
           value={mode}
           onChange={(value) => setMode(value as any)}
@@ -79,6 +68,23 @@ const HomePage = () => {
 
         {mode === 'ingredient' && (
           <div className="space-y-4">
+            <Input
+              placeholder="검색어 (예: 돼지고기 김치찌개)"
+              style={{ width: '100%' }}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              value={searchQuery}
+              size="large"
+            />
+            <Select
+              placeholder="카테고리 필터 (전체)"
+              style={{ width: '100%' }}
+              onChange={(value) => setCategoryFilter(value)}
+              value={categoryFilter || undefined}
+              size="large"
+            >
+              <Option value="">전체</Option>
+              {recipeCategories.map(cat => <Option key={cat} value={cat}>{cat}</Option>)}
+            </Select>
             <Select
               placeholder="요리 종류 (전체)"
               style={{ width: '100%' }}
@@ -129,47 +135,6 @@ const HomePage = () => {
             >
               랜덤 레시피 보기
             </Button>
-        )}
-
-        {mode === 'crawling' && (
-          <div className="space-y-4">
-            <Input
-              placeholder="검색어 (예: 돼지고기 김치찌개)"
-              style={{ width: '100%' }}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              value={searchQuery}
-              size="large"
-            />
-            <Select
-              placeholder="카테고리 필터 (전체)"
-              style={{ width: '100%' }}
-              onChange={(value) => setCategoryFilter(value)}
-              value={categoryFilter || undefined}
-              size="large"
-            >
-              <Option value="">전체</Option>
-              {recipeCategories.map(cat => <Option key={cat} value={cat}>{cat}</Option>)}
-            </Select>
-            <Select
-              placeholder="난이도 (전체)"
-              style={{ width: '100%' }}
-              onChange={(value) => setDifficulty(value)}
-              value={difficulty || undefined}
-              size="large"
-            >
-              <Option value="">전체</Option>
-              <Option value={1}>하</Option>
-              <Option value={2}>중</Option>
-              <Option value={3}>상</Option>
-            </Select>
-            <Button
-              onClick={handleCrawlAndRecommendClick}
-              loading={loading}
-              className="w-full h-12 text-lg font-bold btn-grad rounded-full"
-            >
-              크롤링 레시피 추천받기
-            </Button>
-          </div>
         )}
       </Card>
 

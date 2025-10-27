@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import apiClient, { crawlAndRecommendRecipes } from '../api/axios';
+import apiClient from '../api/axios';
 
 export interface IngredientWithDetails {
   name: string;
@@ -12,16 +12,16 @@ export interface Recipe {
   id: number;
   name: string;
   instructions: string;
-  cuisine_type: string;
-  serving_size: number;
-  cooking_time: string;
-  difficulty: number;
-  original_url?: string; // Optional for crawled recipes
-  image_url?: string; // Optional for crawled recipes
-  source?: string; // Optional for crawled recipes
-  category?: string; // Optional for crawled recipes
-  ingredients: IngredientWithDetails[]; // Updated to include details
-  missing_ingredients?: string[]; // Added for recommendation logic
+  cuisine_type?: string;
+  serving_size?: number;
+  cooking_time?: string;
+  difficulty?: number;
+  original_url?: string;
+  image_url?: string;
+  source?: string;
+  category?: string;
+  ingredients: IngredientWithDetails[];
+  missing_ingredients?: string[];
 }
 
 interface RecommendationState {
@@ -29,8 +29,7 @@ interface RecommendationState {
   loading: boolean;
   error: string | null;
   message: string | null;
-  fetchRecommendations: (filters: { cuisine_type?: string; serving_size?: number; difficulty?: number }) => Promise<void>;
-  crawlAndFetchRecommendations: (params: { searchQuery: string; categoryFilter?: string; cuisine_type?: string; serving_size?: number; difficulty?: number }) => Promise<void>;
+  fetchRecommendations: (filters: { cuisine_type?: string; serving_size?: number; difficulty?: number; searchQuery?: string; categoryFilter?: string }) => Promise<void>;
 }
 
 const useRecommendationStore = create<RecommendationState>((set) => ({
@@ -50,20 +49,6 @@ const useRecommendationStore = create<RecommendationState>((set) => ({
     } catch (error) {
       console.error("Error fetching recommendations:", error);
       set({ error: '추천을 받아오는 중 오류가 발생했습니다.', loading: false });
-    }
-  },
-  crawlAndFetchRecommendations: async (params) => {
-    set({ loading: true, error: null, message: null, recommendations: null });
-    try {
-      const response = await crawlAndRecommendRecipes(params);
-      if (response.message) {
-        set({ message: response.message, loading: false });
-      } else {
-        set({ recommendations: response, loading: false });
-      }
-    } catch (error) {
-      console.error("Error crawling and fetching recommendations:", error);
-      set({ error: '레시피를 크롤링하고 추천을 받아오는 중 오류가 발생했습니다.', loading: false });
     }
   },
 }));
